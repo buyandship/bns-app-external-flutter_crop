@@ -2,8 +2,8 @@ import 'dart:ui' as ui;
 import 'dart:math';
 
 import 'package:crop/src/crop_render.dart';
-import 'package:collision/collision.dart';
 import 'package:crop/src/matrix_decomposition.dart';
+import 'package:crop/src/rotation_gesture_detector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:vector_math/vector_math_64.dart' as vm;
@@ -76,6 +76,7 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
   Offset _startOffset = Offset.zero;
   Offset _endOffset = Offset.zero;
   double _previousGestureRotation = 0.0;
+  final _rotationGestureDetector = RotationGestureDetector();
 
   /// Store the pointer count (finger involved to perform scaling).
   ///
@@ -168,6 +169,7 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
+    _rotationGestureDetector.onScaleUpdate(details.rotation, details.scale);
     widget.controller._offset += details.focalPoint - _previousOffset;
     _previousOffset = details.focalPoint;
     widget.controller._scale = _previousScale * details.scale;
@@ -201,9 +203,11 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
       final rotationAfterCalculation =
           (widget.controller.rotation - gestureRotationOffset) % 360;
 
-      /* details.rotation is in radians, convert this to degrees and set
+      if (_rotationGestureDetector.isRotationEnabled) {
+        /* details.rotation is in radians, convert this to degrees and set
         our rotation */
-      widget.controller._rotation = rotationAfterCalculation;
+        widget.controller._rotation = rotationAfterCalculation;
+      }
       _previousGestureRotation = gestureRotation;
     }
 
@@ -285,6 +289,7 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
       },
       onScaleUpdate: _onScaleUpdate,
       onScaleEnd: (details) {
+        _rotationGestureDetector.onScaleEnd();
         widget.controller._scale = max(widget.controller._scale, 1);
         _previousPointerCount = 0;
         _reCenterImage();
