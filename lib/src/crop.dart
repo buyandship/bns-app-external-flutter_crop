@@ -23,23 +23,25 @@ class Crop extends StatefulWidget {
   final BoxShape shape;
   final ValueChanged<MatrixDecomposition>? onChanged;
   final Duration animationDuration;
+  final RotationGestureDetector? rotationGestureDetector;
 
-  const Crop({
-    Key? key,
-    required this.child,
-    required this.controller,
-    this.padding = const EdgeInsets.all(8),
-    this.dimColor = const Color.fromRGBO(0, 0, 0, 0.8),
-    this.backgroundColor = Colors.black,
-    this.background,
-    this.foreground,
-    this.helper,
-    this.overlay,
-    this.interactive = true,
-    this.shape = BoxShape.rectangle,
-    this.onChanged,
-    this.animationDuration = const Duration(milliseconds: 200),
-  }) : super(key: key);
+  const Crop(
+      {Key? key,
+      required this.child,
+      required this.controller,
+      this.padding = const EdgeInsets.all(8),
+      this.dimColor = const Color.fromRGBO(0, 0, 0, 0.8),
+      this.backgroundColor = Colors.black,
+      this.background,
+      this.foreground,
+      this.helper,
+      this.overlay,
+      this.interactive = true,
+      this.shape = BoxShape.rectangle,
+      this.onChanged,
+      this.animationDuration = const Duration(milliseconds: 200),
+      this.rotationGestureDetector})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -76,7 +78,7 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
   Offset _startOffset = Offset.zero;
   Offset _endOffset = Offset.zero;
   double _previousGestureRotation = 0.0;
-  final _rotationGestureDetector = RotationGestureDetector();
+  RotationGestureDetector? _rotationGestureDetector;
 
   /// Store the pointer count (finger involved to perform scaling).
   ///
@@ -98,6 +100,8 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
   void initState() {
     widget.controller._cropCallback = _crop;
     widget.controller.addListener(_reCenterImage);
+    _rotationGestureDetector =
+        widget.rotationGestureDetector ?? RotationGestureDetector();
 
     //Setup animation.
     _controller = AnimationController(
@@ -169,7 +173,7 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
-    _rotationGestureDetector.onScaleUpdate(details.rotation, details.scale);
+    _rotationGestureDetector?.onScaleUpdate(details.rotation, details.scale);
     widget.controller._offset += details.focalPoint - _previousOffset;
     _previousOffset = details.focalPoint;
     widget.controller._scale = _previousScale * details.scale;
@@ -203,7 +207,7 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
       final rotationAfterCalculation =
           (widget.controller.rotation - gestureRotationOffset) % 360;
 
-      if (_rotationGestureDetector.isRotationEnabled) {
+      if (_rotationGestureDetector?.isRotationEnabled ?? true) {
         /* details.rotation is in radians, convert this to degrees and set
         our rotation */
         widget.controller._rotation = rotationAfterCalculation;
@@ -289,7 +293,7 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
       },
       onScaleUpdate: _onScaleUpdate,
       onScaleEnd: (details) {
-        _rotationGestureDetector.onScaleEnd();
+        _rotationGestureDetector?.onScaleEnd();
         widget.controller._scale = max(widget.controller._scale, 1);
         _previousPointerCount = 0;
         _reCenterImage();
