@@ -303,14 +303,16 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
     );
 
     List<Widget> over = [
-      CropRenderObjectWidget(
-        aspectRatio: widget.controller._aspectRatio,
-        backgroundColor: widget.backgroundColor,
-        shape: widget.shape,
-        dimColor: widget.dimColor,
-        useDim: widget.useDim,
-        child: _buildRepaintBoundary(),
-      ),
+      Padding(
+          padding: widget.padding,
+          child: CropRenderObjectWidget(
+            aspectRatio: widget.controller._aspectRatio,
+            backgroundColor: widget.backgroundColor,
+            shape: widget.shape,
+            dimColor: widget.dimColor,
+            useDim: widget.useDim,
+            child: _buildRepaintBoundary(),
+          )),
     ];
 
     if (widget.overlay != null) {
