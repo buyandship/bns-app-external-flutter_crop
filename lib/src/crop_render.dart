@@ -3,7 +3,6 @@ import 'package:flutter/rendering.dart';
 
 /// Render object widget with a [RenderCrop] inside.
 class CropRenderObjectWidget extends SingleChildRenderObjectWidget {
-
   const CropRenderObjectWidget({
     required Widget child,
     required this.aspectRatio,
@@ -11,19 +10,23 @@ class CropRenderObjectWidget extends SingleChildRenderObjectWidget {
     Key? key,
     this.backgroundColor = Colors.black,
     this.dimColor = const Color.fromRGBO(0, 0, 0, 0.8),
+    this.useDim = true,
   }) : super(key: key, child: child);
-  
+
   /// Aspect ratio.
   final double aspectRatio;
-  
+
   /// Dim Color.
   final Color dimColor;
-  
+
   /// Background color.
   final Color backgroundColor;
-  
+
   /// Shape of crop area.
   final BoxShape shape;
+
+  /// Should dim outside crop bounds.
+  final bool useDim;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
@@ -31,7 +34,8 @@ class CropRenderObjectWidget extends SingleChildRenderObjectWidget {
       ..aspectRatio = aspectRatio
       ..dimColor = dimColor
       ..backgroundColor = backgroundColor
-      ..shape = shape;
+      ..shape = shape
+      ..useDim = useDim;
   }
 
   @override
@@ -76,6 +80,7 @@ class RenderCrop extends RenderBox with RenderObjectWithChildMixin<RenderBox> {
   Color? dimColor;
   Color? backgroundColor;
   BoxShape? shape;
+  bool useDim = true;
 
   @override
   bool hitTestSelf(Offset position) => false;
@@ -135,15 +140,17 @@ class RenderCrop extends RenderBox with RenderObjectWithChildMixin<RenderBox> {
 
       final clipPath = _getDimClipPath();
 
-      context.pushClipPath(
-        needsCompositing,
-        offset,
-        bounds,
-        clipPath,
-        (context, offset) {
-          context.canvas.drawRect(bounds, Paint()..color = dimColor!);
-        },
-      );
+      if (useDim) {
+        context.pushClipPath(
+          needsCompositing,
+          offset,
+          bounds,
+          clipPath,
+          (context, offset) {
+            context.canvas.drawRect(bounds, Paint()..color = dimColor!);
+          },
+        );
+      }
     }
   }
 }
