@@ -24,6 +24,7 @@ class Crop extends StatefulWidget {
   final ValueChanged<MatrixDecomposition>? onChanged;
   final Duration animationDuration;
   final RotationGestureDetector? rotationGestureDetector;
+  final bool useDim;
 
   const Crop(
       {Key? key,
@@ -40,7 +41,8 @@ class Crop extends StatefulWidget {
       this.shape = BoxShape.rectangle,
       this.onChanged,
       this.animationDuration = const Duration(milliseconds: 200),
-      this.rotationGestureDetector})
+      this.rotationGestureDetector,
+      this.useDim = true})
       : super(key: key);
 
   @override
@@ -301,13 +303,16 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
     );
 
     List<Widget> over = [
-      CropRenderObjectWidget(
-        aspectRatio: widget.controller._aspectRatio,
-        backgroundColor: widget.backgroundColor,
-        shape: widget.shape,
-        dimColor: widget.dimColor,
-        child: _buildRepaintBoundary(),
-      ),
+      Padding(
+          padding: widget.padding,
+          child: CropRenderObjectWidget(
+            aspectRatio: widget.controller._aspectRatio,
+            backgroundColor: widget.backgroundColor,
+            shape: widget.shape,
+            dimColor: widget.dimColor,
+            useDim: widget.useDim,
+            child: _buildRepaintBoundary(),
+          )),
     ];
 
     if (widget.overlay != null) {
