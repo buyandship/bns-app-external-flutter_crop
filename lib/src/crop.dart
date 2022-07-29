@@ -178,7 +178,9 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
     _rotationGestureDetector?.onScaleUpdate(details.rotation, details.scale);
     widget.controller._offset += details.focalPoint - _previousOffset;
     _previousOffset = details.focalPoint;
-    widget.controller._scale = _previousScale * details.scale;
+    widget.controller._scale = (_previousScale * details.scale)
+        .clamp(1.0, widget.controller.maxScale ?? double.infinity);
+
     _startOffset = widget.controller._offset;
     _endOffset = widget.controller._offset;
 
@@ -291,12 +293,14 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
     final gd = GestureDetector(
       onScaleStart: (details) {
         _previousOffset = details.focalPoint;
-        _previousScale = max(widget.controller._scale, 1);
+        _previousScale = widget.controller._scale
+            .clamp(1.0, widget.controller.maxScale ?? double.infinity);
       },
       onScaleUpdate: _onScaleUpdate,
       onScaleEnd: (details) {
         _rotationGestureDetector?.onScaleEnd();
-        widget.controller._scale = max(widget.controller._scale, 1);
+        widget.controller._scale = widget.controller._scale
+            .clamp(1.0, widget.controller.maxScale ?? double.infinity);
         _previousPointerCount = 0;
         _reCenterImage();
       },
@@ -344,6 +348,7 @@ typedef _CropCallback = Future<ui.Image> Function(double pixelRatio);
 
 /// The controller used to control the rotation, scale and actual cropping.
 class CropController extends ChangeNotifier {
+  final double? maxScale;
   double _aspectRatio = 1;
   double _rotation = 0;
   double _scale = 1;
@@ -364,7 +369,7 @@ class CropController extends ChangeNotifier {
 
   /// Sets the desired scale.
   set scale(double value) {
-    _scale = max(value, 1);
+    _scale = value.clamp(1.0, maxScale ?? double.infinity);
     notifyListeners();
   }
 
@@ -393,11 +398,11 @@ class CropController extends ChangeNotifier {
     ..scale(_scale, _scale, 1);
 
   /// Constructor
-  CropController({
-    double aspectRatio = 1.0,
-    double scale = 1.0,
-    double rotation = 0,
-  }) {
+  CropController(
+      {double aspectRatio = 1.0,
+      double scale = 1.0,
+      double rotation = 0,
+      this.maxScale}) {
     _aspectRatio = aspectRatio;
     _scale = scale;
     _rotation = rotation;
