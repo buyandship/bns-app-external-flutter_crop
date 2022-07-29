@@ -178,7 +178,9 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
     _rotationGestureDetector?.onScaleUpdate(details.rotation, details.scale);
     widget.controller._offset += details.focalPoint - _previousOffset;
     _previousOffset = details.focalPoint;
-    widget.controller._scale = _previousScale * details.scale;
+    widget.controller._scale = (_previousScale * details.scale)
+        .clamp(1.0, widget.controller.maxScale ?? double.infinity);
+
     _startOffset = widget.controller._offset;
     _endOffset = widget.controller._offset;
 
