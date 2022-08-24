@@ -133,10 +133,18 @@ class _CropState extends State<Crop> with TickerProviderStateMixin {
       // Vertical image. Height needs to be rescaled according to ratio.
       w = sz.width;
       h = sz.height / ratio;
+      if (h < sz.height) {
+        w = sz.height * childWidgetSize.aspectRatio;
+        h = sz.height;
+      }
     } else {
       // Horizontal or square image. Width needs to be rescaled according to ratio (for square ratio is 1.0).
       w = sz.width * ratio;
       h = sz.height;
+      if (w < sz.width) {
+        w = sz.width;
+        h = sz.width / childWidgetSize.aspectRatio;
+      }
     }
 
     final canvas = Rect.fromLTWH(0, 0, w, h);
